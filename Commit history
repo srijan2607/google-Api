@@ -1,0 +1,20 @@
+# Rewriting commit history to remove any traces of the `.env` file
+
+# Step 1: Remove the `.env` file from the repository
+git rm --cached .env
+
+# Step 2: Create a new commit to remove the `.env` file
+git commit -m "Remove .env file containing sensitive information"
+
+# Step 3: Rebase the commit history to remove any traces of the `.env` file
+git rebase -i HEAD~<number_of_commits>
+
+# Step 4: In the interactive rebase, mark the commit that added the `.env` file as "edit"
+# Step 5: Amend the commit to remove the `.env` file
+git commit --amend
+
+# Step 6: Continue the rebase process
+git rebase --continue
+
+# Step 7: Force push the rewritten commit history to the remote repository
+git push --force
