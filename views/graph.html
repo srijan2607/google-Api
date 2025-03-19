@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Step Count History</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 20px;
+        background-color: #f5f5f5;
+      }
+      .container {
+        max-width: 1000px;
+        margin: 0 auto;
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+      h1 {
+        color: #4285f4;
+        text-align: center;
+      }
+      .chart-container {
+        position: relative;
+        height: 400px;
+        margin: 20px 0;
+      }
+      .button-group {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin: 20px 0;
+      }
+      .button {
+        background-color: #4285f4;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: bold;
+      }
+      .button:hover {
+        background-color: #3367d6;
+      }
+      .back-btn {
+        margin-top: 20px;
+        text-align: center;
+      }
+      .back-btn a {
+        color: #4285f4;
+        text-decoration: none;
+      }
+      .back-btn a:hover {
+        text-decoration: underline;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Your Step History</h1>
+
+      <div class="button-group">
+        <button class="button" id="btn-7days">Last 7 Days</button>
+        <button class="button" id="btn-14days">Last 14 Days</button>
+        <button class="button" id="btn-30days">Last 30 Days</button>
+      </div>
+
+      <div class="chart-container">
+        <canvas id="stepChart"></canvas>
+      </div>
+
+      <div class="chart-stats">
+        <p>
+          <strong>Average Steps:</strong> <span id="avgSteps">Loading...</span>
+        </p>
+        <p>
+          <strong>Total Steps:</strong> <span id="totalSteps">Loading...</span>
+        </p>
+        <p>
+          <strong>Max Steps:</strong> <span id="maxSteps">Loading...</span> on
+          <span id="maxDate">Loading...</span>
+        </p>
+      </div>
+
+      <div class="back-btn">
+        <a href="/success">Back to Profile</a>
+      </div>
+    </div>
+
+    <script>
+      // Chart initialization
+      let stepChart;
+      let chartData = null;
+
+      // Function to load and display data
+      async function loadStepHistory(days) {
+        try {
+          const response = await fetch(`/api/steps/history?days=${days}`);
+          if (!response.ok) {
+            throw new Error("Failed to fetch data");
+          }
+
+          chartData = await response.json();
+
+          // Extract dates and steps for the chart
+          const dates = chartData.map((item) => item.date);
+          const steps = chartData.map((item) => item.steps);
+
+          // Create or update chart
+          if (stepChart) {
+            stepChart.data.labels = dates;
+            stepChart.data.datasets[0].data = steps;
+            stepChart.update();
+          } else {
+            const ctx = document.getElementById("stepChart").getContext("2d");
+            stepChart = new Chart(ctx, {
+              type: "line",
+              data: {
+                labels: dates,
+                datasets: [
+                  {
+                    label: "Daily Steps",
+                    data: steps,
+                    backgroundColor: "rgba(66, 133, 244, 0.2)",
+                    borderColor: "rgba(66, 133, 244, 1)",
+                    borderWidth: 2,
+                    pointBackgroundColor: "rgba(66, 133, 244, 1)",
+                    tension: 0.1,
+                  },
+                ],
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                  y: {
+                    beginAtZero: true,
+                    title: {
+                      display: true,
+                      text: "Steps",
+                    },
+                  },
+                  x: {
+                    title: {
+                      display: true,
+                      text: "Date",
+                    },
+                  },
+                },
+                plugins: {
+                  legend: {
+                    display: true,
+                    position: "top",
+                  },
+                  tooltip: {
+                    callbacks: {
+                      label: function (context) {
+                        return `Steps: ${context.parsed.y}`;
+                      },
+                    },
+                  },
+                },
+              },
+            });
+          }
+
+          // Update statistics
+          updateStats(steps, dates);
+        } catch (error) {
+          console.error("Error loading step history:", error);
+          document.getElementById("stepChart").innerHTML =
+            "Failed to load step data";
+        }
+      }
+
+      // Calculate and display statistics
+      function updateStats(steps, dates) {
+        if (steps.length === 0) {
+          document.getElementById("avgSteps").textContent = "No data";
+          document.getElementById("totalSteps").textContent = "0";
+          document.getElementById("maxSteps").textContent = "0";
+          document.getElementById("maxDate").textContent = "N/A";
+          return;
+        }
+
+        // Calculate total steps
+        const totalSteps = steps.reduce((sum, current) => sum + current, 0);
+
+        // Calculate average steps
+        const avgSteps = Math.round(totalSteps / steps.length);
+
+        // Find maximum steps
+        const maxSteps = Math.max(...steps);
+        const maxIndex = steps.indexOf(maxSteps);
+        const maxDate = dates[maxIndex];
+
+        // Update DOM
+        document.getElementById("avgSteps").textContent =
+          avgSteps.toLocaleString();
+        document.getElementById("totalSteps").textContent =
+          totalSteps.toLocaleString();
+        document.getElementById("maxSteps").textContent =
+          maxSteps.toLocaleString();
+        document.getElementById("maxDate").textContent = maxDate;
+      }
+
+      // Add event listeners to buttons
+      document
+        .getElementById("btn-7days")
+        .addEventListener("click", () => loadStepHistory(7));
+      document
+        .getElementById("btn-14days")
+        .addEventListener("click", () => loadStepHistory(14));
+      document
+        .getElementById("btn-30days")
+        .addEventListener("click", () => loadStepHistory(30));
+
+      // Load 7-day data by default when page loads
+      document.addEventListener("DOMContentLoaded", () => {
+        loadStepHistory(7);
+      });
+    </script>
+  </body>
+</html>

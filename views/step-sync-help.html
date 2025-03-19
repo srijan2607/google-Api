@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Step Count Sync Troubleshooting</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        line-height: 1.6;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      h1 {
+        color: #4285f4;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 10px;
+      }
+      h2 {
+        color: #34a853;
+        margin-top: 30px;
+      }
+      .tip {
+        background-color: #f8f9fa;
+        border-left: 4px solid #4285f4;
+        padding: 15px;
+        margin: 20px 0;
+      }
+      .warning {
+        background-color: #fef7e0;
+        border-left: 4px solid #fbbc05;
+        padding: 15px;
+        margin: 20px 0;
+      }
+      .btn {
+        display: inline-block;
+        background-color: #4285f4;
+        color: white;
+        padding: 10px 20px;
+        text-decoration: none;
+        border-radius: 4px;
+        font-weight: bold;
+        margin-top: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Step Count Sync Troubleshooting</h1>
+
+    <p>
+      If your step count in our app doesn't match what you see in Google Fit,
+      there are several possible reasons:
+    </p>
+
+    <div class="tip">
+      <h3>1. Sync Your Google Fit App</h3>
+      <p>
+        Make sure your Google Fit app is up-to-date and has synced recently:
+      </p>
+      <ol>
+        <li>Open the Google Fit app on your phone</li>
+        <li>Pull down on the main screen to trigger a manual sync</li>
+        <li>Wait for sync to complete (usually 30 seconds to a minute)</li>
+      </ol>
+    </div>
+
+    <div class="tip">
+      <h3>2. Data Synchronization Delay</h3>
+      <p>
+        There's often a delay between when steps are recorded on your device and
+        when they become available through Google's API:
+      </p>
+      <ul>
+        <li>
+          Steps you just took in the last few minutes may not appear immediately
+        </li>
+        <li>
+          Google's servers may update data in batches (every 15-30 minutes)
+        </li>
+        <li>
+          Our app already tries to get the freshest data possible with each
+          update
+        </li>
+      </ul>
+    </div>
+
+    <div class="tip">
+      <h3>3. Multiple Data Sources</h3>
+      <p>Google Fit combines data from multiple sources:</p>
+      <ul>
+        <li>Your phone's motion sensors</li>
+        <li>Connected fitness devices (watches, fitness trackers)</li>
+        <li>Manually entered activities</li>
+        <li>Third-party fitness apps</li>
+      </ul>
+      <p>
+        Our app already checks all possible data sources to ensure we're showing
+        all your steps.
+      </p>
+    </div>
+
+    <div class="warning">
+      <h3>Time Zone Considerations</h3>
+      <p>
+        Our app uses your local time zone to calculate "today's" steps. If
+        there's a mismatch between your device time zone and your current time
+        zone, this could affect step counts.
+      </p>
+    </div>
+
+    <h2>Try These Solutions</h2>
+
+    <ol>
+      <li>Sync your Google Fit app manually</li>
+      <li>Wait a few minutes for data to propagate</li>
+      <li>Try updating your step count again</li>
+      <li>
+        Check our "View detailed step data sources" page to see exactly which
+        data sources we can access
+      </li>
+      <li>Make sure your phone's time and time zone are set correctly</li>
+    </ol>
+
+    <p>
+      If you continue to see discrepancies, this may be due to limitations in
+      the Google Fitness API and how it makes data available to third-party
+      apps.
+    </p>
+
+    <a href="/force-sync/fitness" class="btn">Update Step Count Now</a>
+    <a
+      href="/success"
+      class="btn"
+      style="margin-left: 10px; background-color: #5f6368"
+      >Back to Profile</a
+    >
+  </body>
+</html>

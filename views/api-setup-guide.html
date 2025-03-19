@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Google Fitness API Setup Guide</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        line-height: 1.6;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      h1 {
+        color: #4285f4;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 10px;
+      }
+      h2 {
+        color: #34a853;
+        margin-top: 30px;
+      }
+      .step {
+        background-color: #f8f9fa;
+        border-left: 4px solid #4285f4;
+        padding: 15px;
+        margin: 20px 0;
+      }
+      .warning {
+        background-color: #fef7e0;
+        border-left: 4px solid #fbbc05;
+        padding: 15px;
+        margin: 20px 0;
+      }
+      code {
+        background-color: #f1f1f1;
+        padding: 2px 5px;
+        border-radius: 3px;
+        font-family: Consolas, monospace;
+      }
+      img {
+        max-width: 100%;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        margin: 10px 0;
+      }
+      .btn {
+        display: inline-block;
+        background-color: #4285f4;
+        color: white;
+        padding: 10px 20px;
+        text-decoration: none;
+        border-radius: 4px;
+        font-weight: bold;
+        margin-top: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Google Fitness API Setup Guide</h1>
+
+    <p>
+      This guide will help you properly set up the Google Fitness API for your
+      application.
+    </p>
+
+    <div class="warning">
+      <strong>Important:</strong> The Fitness API requires proper setup in the
+      Google Cloud Console and may require verification if your app needs
+      sensitive scopes.
+    </div>
+
+    <h2>Step 1: Configure OAuth Consent Screen</h2>
+    <div class="step">
+      <ol>
+        <li>
+          Go to the
+          <a
+            href="https://console.cloud.google.com/apis/credentials/consent"
+            target="_blank"
+            >OAuth consent screen</a
+          >
+          in Google Cloud Console
+        </li>
+        <li>
+          Select either "External" or "Internal" user type (use "External" if
+          you plan to allow any Google user)
+        </li>
+        <li>
+          Fill in the app information:
+          <ul>
+            <li>App name: Your app name</li>
+            <li>User support email: Your email</li>
+            <li>Developer contact information: Your email</li>
+          </ul>
+        </li>
+        <li>Click "Save and Continue"</li>
+      </ol>
+    </div>
+
+    <h2>Step 2: Add Scopes to OAuth Consent Screen</h2>
+    <div class="step">
+      <ol>
+        <li>On the "Scopes" page, click "Add or Remove Scopes"</li>
+        <li>
+          Add the following scopes:
+          <ul>
+            <li>
+              <code>https://www.googleapis.com/auth/fitness.activity.read</code>
+              (For step counts)
+            </li>
+            <li>
+              <code>https://www.googleapis.com/auth/fitness.location.read</code>
+              (For location data)
+            </li>
+            <li>
+              <code>email</code> and <code>profile</code> (For user
+              authentication)
+            </li>
+          </ul>
+        </li>
+        <li>Click "Update"</li>
+        <li>Click "Save and Continue"</li>
+      </ol>
+    </div>
+
+    <h2>Step 3: Enable the Fitness API</h2>
+    <div class="step">
+      <ol>
+        <li>
+          Go to the
+          <a
+            href="https://console.cloud.google.com/apis/library/fitness.googleapis.com"
+            target="_blank"
+            >Fitness API page</a
+          >
+          in the API Library
+        </li>
+        <li>Click "Enable" to activate the API for your project</li>
+      </ol>
+    </div>
+
+    <h2>Step 4: Configure OAuth Credentials</h2>
+    <div class="step">
+      <ol>
+        <li>
+          Go to
+          <a
+            href="https://console.cloud.google.com/apis/credentials"
+            target="_blank"
+            >Credentials</a
+          >
+          in the Google Cloud Console
+        </li>
+        <li>Click "Create Credentials" and select "OAuth client ID"</li>
+        <li>Select "Web application" as the application type</li>
+        <li>
+          Add authorized redirect URIs:
+          <ul>
+            <li>
+              <code>http://localhost:8000/google/callback</code> (For
+              authentication)
+            </li>
+            <li>
+              <code>http://localhost:8000/fitness/callback</code> (For Fitness
+              API)
+            </li>
+          </ul>
+        </li>
+        <li>Click "Create"</li>
+        <li>Copy the Client ID and Client Secret to your .env file</li>
+      </ol>
+    </div>
+
+    <h2>Step 5: Verification Requirements</h2>
+    <div class="warning">
+      <p>
+        <strong>Note:</strong> If your app is in "External" user type, using
+        Fitness API scopes requires verification by Google. During development,
+        you can add test users (up to 100) who can access your app without
+        verification.
+      </p>
+      <p>
+        For a production app, you'll need to complete the
+        <a
+          href="https://support.google.com/cloud/answer/9110914"
+          target="_blank"
+          >verification process</a
+        >.
+      </p>
+    </div>
+
+    <h2>Step 6: Update Your .env File</h2>
+    <div class="step">
+      <p>Make sure your .env file has these variables set:</p>
+      <pre>
+CLIENT_ID = "your-client-id"
+CLIENT_SECRET = "your-client-secret"
+CALLBACK_URL = "http://localhost:8000/google/callback"
+FIT_CALLBACK_URL = "http://localhost:8000/fitness/callback"
+MONGODB_URI = "your-mongodb-connection-string"
+        </pre
+      >
+    </div>
+
+    <a href="/connect/fitness" class="btn">Try Connecting to Google Fitness</a>
+    <a href="/" class="btn" style="margin-left: 10px; background-color: #5f6368"
+      >Back to Home</a
+    >
+  </body>
+</html>

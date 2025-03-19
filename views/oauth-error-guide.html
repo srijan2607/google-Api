@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Google OAuth Error Guide</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        line-height: 1.6;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      h1 {
+        color: #ea4335;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 10px;
+      }
+      h2 {
+        color: #4285f4;
+        margin-top: 30px;
+      }
+      .card {
+        background-color: #f8f9fa;
+        border-left: 4px solid #4285f4;
+        padding: 15px;
+        margin: 20px 0;
+      }
+      .error-card {
+        background-color: #feeae7;
+        border-left: 4px solid #ea4335;
+        padding: 15px;
+        margin: 20px 0;
+      }
+      .step {
+        background-color: #f8f9fa;
+        border-left: 4px solid #34a853;
+        padding: 15px;
+        margin: 15px 0;
+      }
+      code {
+        background-color: #f1f1f1;
+        padding: 2px 5px;
+        border-radius: 3px;
+        font-family: Consolas, monospace;
+      }
+      img {
+        max-width: 100%;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        margin: 10px 0;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      }
+      .btn {
+        display: inline-block;
+        background-color: #4285f4;
+        color: white;
+        padding: 10px 20px;
+        text-decoration: none;
+        border-radius: 4px;
+        font-weight: bold;
+        margin-top: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Google OAuth Error: access_denied</h1>
+
+    <div class="error-card">
+      <p>
+        <strong>Error Message:</strong> srijan-learn has not completed the
+        Google verification process. The app is currently being tested, and can
+        only be accessed by developer-approved testers.
+      </p>
+    </div>
+
+    <p>
+      This error occurs because your Google Cloud Project is using sensitive
+      scopes (like fitness data access) without being verified by Google. During
+      development and testing, access is restricted to users explicitly added as
+      test users.
+    </p>
+
+    <h2>How to Fix This Error</h2>
+
+    <div class="step">
+      <h3>Step 1: Add Yourself as a Test User</h3>
+      <ol>
+        <li>
+          Go to the
+          <a
+            href="https://console.cloud.google.com/apis/credentials/consent"
+            target="_blank"
+            >OAuth consent screen</a
+          >
+          in Google Cloud Console
+        </li>
+        <li>Scroll down to find the "Test users" section</li>
+        <li>Click "Add users"</li>
+        <li>Enter your Google email address (the one you're using to test)</li>
+        <li>Click "Save"</li>
+      </ol>
+      <img
+        src="https://i.imgur.com/xJnlIh8.png"
+        alt="Test users section in OAuth consent screen"
+      />
+    </div>
+
+    <div class="step">
+      <h3>Step 2: Wait a Few Minutes</h3>
+      <p>
+        After adding yourself as a test user, wait for a few minutes for the
+        changes to propagate through Google's systems.
+      </p>
+    </div>
+
+    <div class="step">
+      <h3>Step 3: Try Again</h3>
+      <p>
+        Retry the authentication flow by clicking on the link below. You may
+        need to clear cookies or use a private/incognito window.
+      </p>
+    </div>
+
+    <div class="card">
+      <h3>For Production Use</h3>
+      <p>When you're ready to make your app available to all users:</p>
+      <ol>
+        <li>Complete Google's verification process for your OAuth app</li>
+        <li>
+          Submit justification for using sensitive scopes (like fitness data)
+        </li>
+        <li>Wait for Google's approval (can take several days or weeks)</li>
+      </ol>
+      <p>
+        More info:
+        <a
+          href="https://support.google.com/cloud/answer/9110914"
+          target="_blank"
+          >Google OAuth verification requirements</a
+        >
+      </p>
+    </div>
+
+    <a href="/connect/fitness" class="btn">Try Connecting Again</a>
+    <a href="/" class="btn" style="margin-left: 10px; background-color: #5f6368"
+      >Back to Home</a
+    >
+  </body>
+</html>
