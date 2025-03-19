@@ -54,10 +54,19 @@ const port = process.env.PORT || 8000;
     app.get("/success", ensureAuthenticated, (req, res) => {
       // Check if user has connected fitness data
       const hasConnectedFitness = !!req.user.fitnessTokens;
-      const stepCount = req.user.stepCount ? req.user.stepCount.count : null;
-      const lastUpdated = req.user.stepCount
-        ? new Date(req.user.stepCount.lastUpdated)
-        : null;
+
+      // Get step count from either the new fitnessMetrics or old stepCount field
+      const stepCount =
+        req.user.fitnessMetrics?.steps || req.user.stepCount?.count || null;
+
+      // Get new metrics
+      const caloriesBurned = req.user.fitnessMetrics?.calories || null;
+      const activeMinutes = req.user.fitnessMetrics?.activeMinutes || null;
+
+      // Get the lastUpdated time from either new fitnessMetrics or old stepCount field
+      const lastUpdated =
+        req.user.fitnessMetrics?.lastUpdated ||
+        (req.user.stepCount ? new Date(req.user.stepCount.lastUpdated) : null);
 
       // Format last updated time if available
       let lastUpdatedText = "";
@@ -95,25 +104,50 @@ const port = process.env.PORT || 8000;
             ? `<a href="/connect/fitness" style="display: inline-block; background-color: #4285F4; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; font-weight: bold;">Connect Health</a>`
             : `
                 <div style="padding: 15px; border: 1px solid #e0e0e0; border-radius: 8px; margin-bottom: 20px; background-color: #f9f9f9;">
-                  <h1 style="margin-top: 0;">Today's Step Count: ${
-                    stepCount !== null ? stepCount : "Loading..."
-                  }</h1>
+                  <h1 style="margin-top: 0;">Today's Fitness Summary</h1>
+                  
+                  <div style="display: flex; flex-wrap: wrap; justify-content: space-between; margin-bottom: 20px;">
+                    <div style="flex: 1; min-width: 120px; margin: 10px; padding: 15px; background: #E8F0FE; border-radius: 8px; text-align: center;">
+                      <div style="font-size: 36px; font-weight: bold; color: #4285F4;">${
+                        stepCount !== null ? stepCount.toLocaleString() : "?"
+                      }</div>
+                      <div style="color: #5F6368;">Steps</div>
+                    </div>
+                    
+                    <div style="flex: 1; min-width: 120px; margin: 10px; padding: 15px; background: #FEEFC3; border-radius: 8px; text-align: center;">
+                      <div style="font-size: 36px; font-weight: bold; color: #F9AB00;">${
+                        caloriesBurned !== null
+                          ? caloriesBurned.toLocaleString()
+                          : "?"
+                      }</div>
+                      <div style="color: #5F6368;">Calories</div>
+                    </div>
+                    
+                    <div style="flex: 1; min-width: 120px; margin: 10px; padding: 15px; background: #E6F4EA; border-radius: 8px; text-align: center;">
+                      <div style="font-size: 36px; font-weight: bold; color: #34A853;">${
+                        activeMinutes !== null
+                          ? activeMinutes.toLocaleString()
+                          : "?"
+                      }</div>
+                      <div style="color: #5F6368;">Active Min</div>
+                    </div>
+                  </div>
+                  
                   ${
                     lastUpdated
-                      ? `<p style="color: #666;">Last updated: ${lastUpdatedText}</p>`
+                      ? `<p style="color: #666; text-align: center;">Last updated: ${lastUpdatedText}</p>`
                       : ""
                   }
-                  <p style="font-size: 14px; color: #666;">Data from Google Fitness API (always showing the latest data)</p>
-                  <p style="font-size: 12px; color: #999;">Steps not matching your Google Fit app? <a href="/step-sync-help">See why</a></p>
+                  <p style="font-size: 14px; color: #666; text-align: center;">Data from Google Fitness API (always showing the latest data)</p>
+                  <p style="font-size: 12px; color: #999; text-align: center;">Data not matching your Google Fit app? <a href="/step-sync-help">See why</a></p>
                 </div>
                 
-                <div>
-                  <!-- Renamed to just "Update Step Count" since all updates are forced now -->
-                  <a href="/force-sync/fitness" style="display: inline-block; background-color: #4285F4; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; font-weight: bold; margin-right: 10px;">Update Step Count</a>
+                <div style="text-align: center;">
+                  <a href="/force-sync/fitness" style="display: inline-block; background-color: #4285F4; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; font-weight: bold; margin-right: 10px;">Update Fitness Data</a>
                   <a href="/step-history" style="display: inline-block; background-color: #FBBC05; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; font-weight: bold;">View History</a>
                 </div>
-                <div style="margin-top: 10px;">
-                  <a href="/debug/step-data" style="color: #666;">View detailed step data sources</a>
+                <div style="margin-top: 10px; text-align: center;">
+                  <a href="/debug/step-data" style="color: #666;">View detailed fitness data</a>
                 </div>
               `
         }
@@ -199,8 +233,8 @@ const port = process.env.PORT || 8000;
           // Wait 5 seconds before fetching to give Google Fit API time to sync
           await new Promise((resolve) => setTimeout(resolve, 5000));
 
-          // Force refresh is true by default now
-          await fitService.getStepCount(
+          // Use getFitnessMetrics instead of getStepCount
+          await fitService.getFitnessMetrics(
             oauth2Client,
             user.fitnessTokens,
             user._id,
@@ -319,19 +353,28 @@ const port = process.env.PORT || 8000;
         try {
           const oauth2Client = fitService.getOAuthClient();
 
-          // Always force refresh now (forceRefresh parameter is true by default)
-          const stepCount = await fitService.getStepCount(
+          // Get all metrics instead of just steps
+          const metrics = await fitService.getFitnessMetrics(
             oauth2Client,
             user.fitnessTokens,
             user._id,
             User
           );
 
-          console.log(`Successfully retrieved ${stepCount} steps`);
+          console.log(`Successfully retrieved fitness metrics:`, metrics);
 
+          // Update user's fitness metrics in the database
           await User.findByIdAndUpdate(user._id, {
+            // Store in the new fitnessMetrics field
+            fitnessMetrics: {
+              steps: metrics.steps,
+              calories: metrics.calories,
+              activeMinutes: metrics.activeMinutes,
+              lastUpdated: new Date(),
+            },
+            // Also update the legacy stepCount field for backward compatibility
             stepCount: {
-              count: stepCount,
+              count: metrics.steps,
               lastUpdated: new Date(),
             },
           });
@@ -438,7 +481,7 @@ const port = process.env.PORT || 8000;
 
         // Process response to show all data sources
         let html = `
-          <h1>Detailed Step Data</h1>
+          <h1>Detailed Fitness Data</h1>
           <h2>User: ${user.displayName}</h2>
           <p>Time period: ${new Date(
             startTimeMillis
@@ -504,6 +547,15 @@ const port = process.env.PORT || 8000;
         html += `<div style="margin-top: 20px; padding: 10px; background-color: #f8f9fa; border-radius: 5px;">`;
         html += `<h2>Summary:</h2>`;
         html += `<p>Total steps across all sources: ${totalSteps}</p>`;
+
+        html += `<h3>Additional Metrics:</h3>
+        <p>Calories Burned: ${
+          user.fitnessMetrics?.calories || "Not Available"
+        }</p>
+        <p>Active Minutes: ${
+          user.fitnessMetrics?.activeMinutes || "Not Available"
+        }</p>`;
+
         html += `</div>`;
 
         html += `<div style="margin-top: 20px;">`;

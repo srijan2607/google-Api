@@ -28,17 +28,19 @@ const userSchema = new mongoose.Schema({
     steps: Number,
     calories: Number,
     activeMinutes: Number,
-    lastUpdated: Date
+    lastUpdated: Date,
   },
   // Keep existing stepCount field for backward compatibility
   stepCount: {
     count: Number,
     lastUpdated: Date,
   },
-  stepHistory: [{
-    date: String,
-    steps: Number
-  }],
+  stepHistory: [
+    {
+      date: String,
+      steps: Number,
+    },
+  ],
   createdAt: {
     type: Date,
     default: Date.now,

@@ -101,10 +101,18 @@ const fitService = {
   },
 
   // Add a new method to get multiple fitness metrics at once
-  async getFitnessMetrics(oauth2Client, tokens, userId = null, User = null, forceRefresh = true) {
+  async getFitnessMetrics(
+    oauth2Client,
+    tokens,
+    userId = null,
+    User = null,
+    forceRefresh = true
+  ) {
     try {
-      console.log(`Starting getFitnessMetrics with force refresh: ${forceRefresh}`);
-      
+      console.log(
+        `Starting getFitnessMetrics with force refresh: ${forceRefresh}`
+      );
+
       // Make sure oauth2Client has the tokens
       if (tokens && tokens.access_token) {
         oauth2Client.setCredentials(tokens);
@@ -126,18 +134,22 @@ const fitService = {
       const startTimeMillis = midnight.getTime();
       const endTimeMillis = now.getTime();
 
-      console.log(`Making fitness metrics request from ${new Date(startTimeMillis).toLocaleString()} to ${new Date(endTimeMillis).toLocaleString()}`);
+      console.log(
+        `Making fitness metrics request from ${new Date(
+          startTimeMillis
+        ).toLocaleString()} to ${new Date(endTimeMillis).toLocaleString()}`
+      );
 
       // Create a unique timestamp for each request to avoid caching
       const timestamp = Date.now();
-      
+
       // Request step count, calories and active minutes in one API call
       try {
         const response = await fitness.users.dataset.aggregate({
           userId: "me",
           requestHeaders: {
             "Cache-Control": "no-cache, no-store, must-revalidate",
-            "Pragma": "no-cache"
+            Pragma: "no-cache",
           },
           requestBody: {
             aggregateBy: [
@@ -152,50 +164,53 @@ const fitService = {
               {
                 dataTypeName: "com.google.active_minutes",
                 // No dataSourceId to get all activity sources
-              }
+              },
             ],
             bucketByTime: { durationMillis: endTimeMillis - startTimeMillis },
             startTimeMillis,
-            endTimeMillis
-          }
+            endTimeMillis,
+          },
         });
 
         console.log("Multiple metrics API response received");
-        
+
         // Initialize metrics with default values
         let metrics = {
           steps: 0,
           calories: 0,
-          activeMinutes: 0
+          activeMinutes: 0,
         };
-        
+
         if (response.data.bucket && response.data.bucket.length > 0) {
           const bucket = response.data.bucket[0];
-          
+
           if (bucket.dataset) {
-            bucket.dataset.forEach(dataset => {
+            bucket.dataset.forEach((dataset) => {
               // Process each dataset based on its type
               const dataType = dataset.dataSourceId || "";
               console.log(`Processing dataset: ${dataType}`);
-              
+
               if (dataset.point) {
-                if (dataType.includes("step_count") || dataset.dataSourceId?.includes("estimated_steps")) {
+                if (
+                  dataType.includes("step_count") ||
+                  dataset.dataSourceId?.includes("estimated_steps")
+                ) {
                   // Step count processing
-                  dataset.point.forEach(point => {
+                  dataset.point.forEach((point) => {
                     if (point.value && point.value.length > 0) {
                       metrics.steps += point.value[0].intVal || 0;
                     }
                   });
                 } else if (dataType.includes("calories")) {
                   // Calories processing - these are usually floating point values
-                  dataset.point.forEach(point => {
+                  dataset.point.forEach((point) => {
                     if (point.value && point.value.length > 0) {
                       metrics.calories += point.value[0].fpVal || 0;
                     }
                   });
                 } else if (dataType.includes("active_minutes")) {
                   // Active minutes processing
-                  dataset.point.forEach(point => {
+                  dataset.point.forEach((point) => {
                     if (point.value && point.value.length > 0) {
                       metrics.activeMinutes += point.value[0].intVal || 0;
                     }
@@ -205,12 +220,14 @@ const fitService = {
             });
           }
         }
-        
+
         // Round calories to 1 decimal place for display purposes
         metrics.calories = Math.round(metrics.calories * 10) / 10;
-        
-        console.log(`Metrics calculated: Steps: ${metrics.steps}, Calories: ${metrics.calories}, Active Minutes: ${metrics.activeMinutes}`);
-        
+
+        console.log(
+          `Metrics calculated: Steps: ${metrics.steps}, Calories: ${metrics.calories}, Active Minutes: ${metrics.activeMinutes}`
+        );
+
         return metrics;
       } catch (apiError) {
         console.error("API request error:", apiError.message);
@@ -226,9 +243,21 @@ const fitService = {
   },
 
   // Existing getStepCount method can now use the metrics function
-  async getStepCount(oauth2Client, tokens, userId = null, User = null, forceRefresh = true) {
+  async getStepCount(
+    oauth2Client,
+    tokens,
+    userId = null,
+    User = null,
+    forceRefresh = true
+  ) {
     try {
-      const metrics = await this.getFitnessMetrics(oauth2Client, tokens, userId, User, forceRefresh);
+      const metrics = await this.getFitnessMetrics(
+        oauth2Client,
+        tokens,
+        userId,
+        User,
+        forceRefresh
+      );
       return metrics.steps;
     } catch (error) {
       console.error("Error in getStepCount:", error.message);
